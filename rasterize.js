@@ -72,7 +72,7 @@ function setupWebGL() {
 
 // read triangles in, load them into webgl buffers
 function loadTriangles() {
-    var inputTriangles = getJSONFile(INPUT_TRIANGLES_URL,"triangles");[cite: 1]
+    var inputTriangles = getJSONFile(INPUT_TRIANGLES_URL,"triangles");
     if (inputTriangles != String.null) { 
         var coordArray = []; // 1D array of vertex coords for WebGL
         var colorArray = []; // 1D array of vertex diffuse colors for WebGL[cite: 1]
@@ -85,7 +85,7 @@ function loadTriangles() {
             // 1. Append vertex coordinates and diffuse color per vertex
             for (var whichSetVert = 0; whichSetVert < currSet.vertices.length; whichSetVert++) {
                 coordArray = coordArray.concat(currSet.vertices[whichSetVert]);
-                colorArray = colorArray.concat(currSet.material.diffuse);[cite: 1]
+                colorArray = colorArray.concat(currSet.material.diffuse);
             }
 
             // 2. Append triangle indices with appropriate vertex offset
@@ -127,7 +127,7 @@ function setupShaders() {
         varying vec3 vColor;
 
         void main(void) {
-            gl_FragColor = vec4(vColor, 1.0); // output diffuse color[cite: 1]
+            gl_FragColor = vec4(vColor, 1.0); 
         }
     `;
     
