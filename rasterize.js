@@ -50,60 +50,96 @@ function getJSONFile(url,descr) {
     }
 }
 
-// Helper function to build 2-triangle rectangular sets easily
-function makeRectSet(x1, y1, x2, y2, z, rgbColor) {
+// Helper function to create a single triangle set
+function makeTri(p1, p2, p3, rgb) {
     return {
-        material: { diffuse: rgbColor },
-        vertices: [[x1, y1, z], [x1, y2, z], [x2, y2, z], [x2, y1, z]],
-        triangles: [[0, 1, 2], [0, 2, 3]]
+        material: { diffuse: rgb },
+        vertices: [p1, p2, p3],
+        triangles: [[0, 1, 2]]
     };
 }
 
-// Generate geometry data for multiple cacti and desert ground
+// Helper function to create a pointy 3D-faceted cactus column (2 triangular facets)
+function addFacetedColumn(sceneSets, xBaseLeft, xBaseRight, yBase, xTip, yTip, z, colorLight, colorDark) {
+    var xMid = (xBaseLeft + xBaseRight) / 2;
+    // Left facet (illuminated)
+    sceneSets.push(makeTri([xBaseLeft, yBase, z], [xMid, yBase, z], [xTip, yTip, z], colorLight));
+    // Right facet (shadow)
+    sceneSets.push(makeTri([xMid, yBase, z], [xBaseRight, yBase, z], [xTip, yTip, z], colorDark));
+}
+
+// Generate geometry data for a low-poly triangular cactus desert
 function generateCactusSceneData() {
     var sceneSets = [];
 
-    // 1. Desert Sand / Ground (Warm Sand Color)
-    sceneSets.push(makeRectSet(-1.0, -1.0, 1.0, -0.4, 0.9, [0.85, 0.65, 0.35]));
+    // --- 1. LOW-POLY SUN & RAYS (Upper Right) ---
+    var sunCenter = [0.65, 0.65, 0.95];
+    var cLight = [1.0, 0.88, 0.3];
+    var cDark  = [0.95, 0.70, 0.15];
+    var cRay   = [0.98, 0.55, 0.10];
 
-    // 2. Desert Sun (Yellow-Orange Octagon/Triangle Fan)
-    sceneSets.push({
-        material: { diffuse: [0.98, 0.75, 0.18] },
-        vertices: [
-            [0.65, 0.65, 0.95],
-            [0.50, 0.65, 0.95], [0.55, 0.80, 0.95], [0.65, 0.85, 0.95], [0.75, 0.80, 0.95],
-            [0.80, 0.65, 0.95], [0.75, 0.50, 0.95], [0.65, 0.45, 0.95], [0.55, 0.50, 0.95]
-        ],
-        triangles: [
-            [0, 1, 2], [0, 2, 3], [0, 3, 4], [0, 4, 5],
-            [0, 5, 6], [0, 6, 7], [0, 7, 8], [0, 8, 1]
-        ]
-    });
+    // Diamond Sun Core
+    sceneSets.push(makeTri(sunCenter, [0.50, 0.65, 0.95], [0.65, 0.82, 0.95], cLight));
+    sceneSets.push(makeTri(sunCenter, [0.65, 0.82, 0.95], [0.80, 0.65, 0.95], cLight));
+    sceneSets.push(makeTri(sunCenter, [0.80, 0.65, 0.95], [0.65, 0.48, 0.95], cDark));
+    sceneSets.push(makeTri(sunCenter, [0.65, 0.48, 0.95], [0.50, 0.65, 0.95], cDark));
 
-    // 3. CACTUS 1: Large Center-Left Cactus with Pot (Classic Saguaro Green)
-    var c1Green = [0.15, 0.55, 0.22];
-    sceneSets.push(makeRectSet(-0.55, -0.55, -0.35, -0.40, 0.7, [0.75, 0.32, 0.18])); // Terracotta Pot
-    sceneSets.push(makeRectSet(-0.48, -0.40, -0.42,  0.30, 0.6, c1Green));           // Main Trunk
-    sceneSets.push(makeRectSet(-0.62, -0.10, -0.48, -0.02, 0.6, c1Green));           // Left Arm Base
-    sceneSets.push(makeRectSet(-0.62, -0.02, -0.56,  0.15, 0.6, c1Green));           // Left Arm Top
-    sceneSets.push(makeRectSet(-0.42,  0.02, -0.28,  0.10, 0.6, c1Green));           // Right Arm Base
-    sceneSets.push(makeRectSet(-0.34,  0.10, -0.28,  0.22, 0.6, c1Green));           // Right Arm Top
+    // Sharp Triangular Sun Rays
+    sceneSets.push(makeTri([0.65, 0.82, 0.96], [0.60, 0.85, 0.96], [0.65, 0.95, 0.96], cRay));
+    sceneSets.push(makeTri([0.80, 0.65, 0.96], [0.83, 0.70, 0.96], [0.94, 0.65, 0.96], cRay));
+    sceneSets.push(makeTri([0.65, 0.48, 0.96], [0.70, 0.45, 0.96], [0.65, 0.35, 0.96], cRay));
+    sceneSets.push(makeTri([0.50, 0.65, 0.96], [0.47, 0.60, 0.96], [0.36, 0.65, 0.96], cRay));
 
-    // 4. CACTUS 2: Smaller Right Cactus (Lighter Lime-Green)
-    var c2Green = [0.25, 0.68, 0.30];
-    sceneSets.push(makeRectSet( 0.25, -0.50,  0.33,  0.10, 0.6, c2Green));           // Main Trunk
-    sceneSets.push(makeRectSet( 0.15, -0.22,  0.25, -0.15, 0.6, c2Green));           // Left Arm Base
-    sceneSets.push(makeRectSet( 0.15, -0.15,  0.20,  0.00, 0.6, c2Green));           // Left Arm Top
-    sceneSets.push(makeRectSet( 0.33, -0.10,  0.43, -0.03, 0.6, c2Green));           // Right Arm Base
-    sceneSets.push(makeRectSet( 0.38, -0.03,  0.43,  0.08, 0.6, c2Green));           // Right Arm Top
 
-    // 5. CACTUS 3: Distance Background Cactus (Darker Olive Green)
-    var c3Green = [0.12, 0.42, 0.20];
-    sceneSets.push(makeRectSet(-0.05, -0.45, -0.01, -0.10, 0.8, c3Green));           // Main Trunk
-    sceneSets.push(makeRectSet(-0.10, -0.32, -0.05, -0.27, 0.8, c3Green));           // Left Arm
-    sceneSets.push(makeRectSet(-0.10, -0.27, -0.07, -0.18, 0.8, c3Green));
-    sceneSets.push(makeRectSet(-0.01, -0.25,  0.04, -0.20, 0.8, c3Green));           // Right Arm
-    sceneSets.push(makeRectSet( 0.02, -0.20,  0.04, -0.13, 0.8, c3Green));
+    // --- 2. LAYERED TRIANGULAR MOUNTAINS & SAND DUNES ---
+    // Distant Red Mountain Peaks
+    sceneSets.push(makeTri([-1.0, -0.3, 0.92], [-0.5, 0.35, 0.92], [0.1, -0.3, 0.92], [0.55, 0.25, 0.30]));
+    sceneSets.push(makeTri([-0.2, -0.3, 0.91], [0.35, 0.42, 0.91], [0.9, -0.3, 0.91], [0.65, 0.32, 0.28]));
+
+    // Midground Sand Dunes (Overlapping Triangles)
+    sceneSets.push(makeTri([-1.0, -0.5, 0.85], [-0.3, 0.10, 0.85], [0.4, -0.5, 0.85], [0.82, 0.50, 0.22]));
+    sceneSets.push(makeTri([-0.3, -0.5, 0.83], [0.4, 0.02, 0.83], [1.0, -0.5, 0.83], [0.88, 0.60, 0.26]));
+
+    // Foreground Faceted Floor
+    sceneSets.push(makeTri([-1.0, -1.0, 0.80], [-1.0, -0.5, 0.80], [0.0, -0.5, 0.80], [0.90, 0.64, 0.32]));
+    sceneSets.push(makeTri([-1.0, -1.0, 0.80], [0.0, -0.5, 0.80], [0.2, -1.0, 0.80], [0.84, 0.58, 0.28]));
+    sceneSets.push(makeTri([0.2, -1.0, 0.80], [0.0, -0.5, 0.80], [1.0, -0.5, 0.80], [0.92, 0.68, 0.35]));
+    sceneSets.push(makeTri([0.2, -1.0, 0.80], [1.0, -0.5, 0.80], [1.0, -1.0, 0.80], [0.86, 0.60, 0.30]));
+
+
+    // --- 3. POINTY LOW-POLY CACTI ---
+    var g1L = [0.22, 0.68, 0.32], g1D = [0.12, 0.48, 0.22]; // Classic Green
+    var g2L = [0.32, 0.78, 0.38], g2D = [0.18, 0.58, 0.26]; // Lime Green
+    var g3L = [0.18, 0.52, 0.28], g3D = [0.08, 0.35, 0.18]; // Olive Dark
+
+    // CACTUS 1 (Large Left Saguaro)
+    // Main Trunk
+    addFacetedColumn(sceneSets, -0.56, -0.40, -0.50, -0.48, 0.38, 0.6, g1L, g1D);
+    // Left Arm
+    addFacetedColumn(sceneSets, -0.50, -0.48, -0.15, -0.68, 0.05, 0.6, g1L, g1D);
+    addFacetedColumn(sceneSets, -0.72, -0.64,  0.02, -0.68, 0.22, 0.6, g1L, g1D);
+    // Right Arm
+    addFacetedColumn(sceneSets, -0.48, -0.46, -0.05, -0.28, 0.08, 0.6, g1L, g1D);
+    addFacetedColumn(sceneSets, -0.32, -0.24,  0.05, -0.28, 0.28, 0.6, g1L, g1D);
+    // Flower on top
+    sceneSets.push(makeTri([-0.52, 0.38, 0.58], [-0.44, 0.38, 0.58], [-0.48, 0.46, 0.58], [0.95, 0.20, 0.52]));
+
+    // CACTUS 2 (Right Tall Cactus)
+    // Main Trunk
+    addFacetedColumn(sceneSets, 0.25, 0.37, -0.45, 0.31, 0.25, 0.6, g2L, g2D);
+    // Left Arm
+    addFacetedColumn(sceneSets, 0.29, 0.31, -0.20, 0.12, -0.08, 0.6, g2L, g2D);
+    addFacetedColumn(sceneSets, 0.10, 0.16, -0.10, 0.13, 0.08, 0.6, g2L, g2D);
+    // Right Arm
+    addFacetedColumn(sceneSets, 0.31, 0.33, -0.10, 0.48, 0.02, 0.6, g2L, g2D);
+    addFacetedColumn(sceneSets, 0.43, 0.49,  0.00, 0.46, 0.16, 0.6, g2L, g2D);
+    // Flower on top
+    sceneSets.push(makeTri([0.27, 0.25, 0.58], [0.35, 0.25, 0.58], [0.31, 0.32, 0.58], [0.98, 0.35, 0.65]));
+
+    // CACTUS 3 (Small Center Background Cactus)
+    addFacetedColumn(sceneSets, -0.07, -0.01, -0.40, -0.04, -0.08, 0.7, g3L, g3D);
+    addFacetedColumn(sceneSets, -0.04, -0.03, -0.28, -0.14, -0.20, 0.7, g3L, g3D);
+    addFacetedColumn(sceneSets, -0.16, -0.12, -0.22, -0.14, -0.08, 0.7, g3L, g3D);
 
     return sceneSets;
 }
